@@ -1,4 +1,4 @@
-package dsecrets
+package api
 
 type Config struct {
 	URL        string
