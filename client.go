@@ -15,6 +15,7 @@ type DCOSSecrets interface {
 	GetSecret(store, key string) (*Secret, error)
 	CreateSecret(store, key string, secret *Secret) error
 	UpdateSecret(store, key string, secret *Secret) error
+	CreateOrUpdateSecret(store, key string, secret *Secret) error
 	DeleteSecret(store, key string) error
 }
 
