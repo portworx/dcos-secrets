@@ -41,16 +41,23 @@ func (s *secretsClient) CreateSecret(store, key string, secret *Secret) error {
 	if err != nil {
 		return err
 	}
-
 	return s.apiPut(path, secret, nil)
 }
 
 func (s *secretsClient) UpdateSecret(store, key string, secret *Secret) error {
-	return nil
+	path, err := s.getSecretsPath(store, key)
+	if err != nil {
+		return err
+	}
+	return s.apiPatch(path, secret, nil)
 }
 
 func (s *secretsClient) DeleteSecret(store, key string) error {
-	return nil
+	path, err := s.getSecretsPath(store, key)
+	if err != nil {
+		return err
+	}
+	return s.apiDelete(path, nil)
 }
 
 func (s *secretsClient) getSecretsPath(store, key string) (string, error) {
