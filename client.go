@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,7 +18,13 @@ type DCOSSecrets interface {
 	UpdateSecret(store, key string, secret *Secret) error
 	CreateOrUpdateSecret(store, key string, secret *Secret) error
 	DeleteSecret(store, key string) error
+	RevokeSecret(store, key string) error
+	RenewSecret(store, key string, duration int64) error
 }
+
+var (
+	ErrNotImplemented = errors.New("API not implemented")
+)
 
 type secretsClient struct {
 	config     Config
