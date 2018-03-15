@@ -73,6 +73,14 @@ func (s *secretsClient) DeleteSecret(store, key string) error {
 	return s.apiDelete(path, nil)
 }
 
+func (s *secretsClient) RevokeSecret(store, key string) error {
+	return ErrNotImplemented
+}
+
+func (s *secretsClient) RenewSecret(store, key string, duration int64) error {
+	return ErrNotImplemented
+}
+
 func (s *secretsClient) getSecretsPath(store, key string) (string, error) {
 	key = strings.TrimSpace(key)
 	if key == "" {
