@@ -73,6 +73,14 @@ func (s *secretsClient) apiPut(path string, body, result interface{}) error {
 	return s.apiRequest("PUT", path, body, result)
 }
 
+func (s *secretsClient) apiPatch(path string, body, result interface{}) error {
+	return s.apiRequest("PATCH", path, body, result)
+}
+
+func (s *secretsClient) apiDelete(path string, result interface{}) error {
+	return s.apiRequest("DELETE", path, nil, result)
+}
+
 func (s *secretsClient) apiRequest(method, path string, body, result interface{}) error {
 	var requestBody []byte
 	var err error
