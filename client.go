@@ -13,6 +13,7 @@ import (
 )
 
 type DCOSSecrets interface {
+	UpdateACSToken(token string)
 	GetSecret(store, key string) (*Secret, error)
 	CreateSecret(store, key string, secret *Secret) error
 	UpdateSecret(store, key string, secret *Secret) error
@@ -21,6 +22,10 @@ type DCOSSecrets interface {
 	RevokeSecret(store, key string) error
 	RenewSecret(store, key string, duration int64) error
 }
+
+const (
+	DefaultClusterURL = "https://master.mesos"
+)
 
 var (
 	ErrNotImplemented = errors.New("API not implemented")
@@ -73,6 +78,10 @@ func getTLSConfig(config Config) (*tls.Config, error) {
 	}, nil
 }
 
+func (s *secretsClient) UpdateACSToken(token string) {
+	s.config.ACSToken = token
+}
+
 func (s *secretsClient) apiGet(path string, result interface{}) error {
 	return s.apiRequest("GET", path, nil, result)
 }
@@ -99,9 +108,13 @@ func (s *secretsClient) apiRequest(method, path string, body, result interface{}
 		}
 	}
 
-	request, err := s.buildJSONRequest(method, path, bytes.NewReader(requestBody))
+	request, err := buildJSONRequest(method, s.config.ClusterURL+path, bytes.NewReader(requestBody))
 	if err != nil {
 		return err
+	}
+
+	if s.config.ACSToken != "" {
+		request.Header.Set("Authorization", "token="+s.config.ACSToken)
 	}
 
 	response, err := s.httpClient.Do(request)
@@ -110,6 +123,16 @@ func (s *secretsClient) apiRequest(method, path string, body, result interface{}
 	}
 	defer response.Body.Close()
 
+	// Returning from here on a 401 because the response currently is
+	// a html page which is not an easily parseable text
+	if response.StatusCode == http.StatusUnauthorized {
+		return NewAPIError([]byte("Unauthorized"))
+	}
+
+	return apiResponse(response, result)
+}
+
+func apiResponse(response *http.Response, result interface{}) error {
 	responseBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return err
@@ -127,19 +150,10 @@ func (s *secretsClient) apiRequest(method, path string, body, result interface{}
 	return NewAPIError(responseBody)
 }
 
-type JWTToken struct {
-	Token string `json:"token"`
-}
-
-func (s *secretsClient) buildJSONRequest(method string, path string, reader io.Reader) (*http.Request, error) {
-	url := s.config.URL + path
+func buildJSONRequest(method string, url string, reader io.Reader) (*http.Request, error) {
 	request, err := http.NewRequest(method, url, reader)
 	if err != nil {
 		return nil, err
-	}
-
-	if s.config.ACSToken != "" {
-		request.Header.Add("Authorization", "token="+s.config.ACSToken)
 	}
 
 	request.Header.Add("Content-Type", "application/json")
