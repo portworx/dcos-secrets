@@ -71,7 +71,9 @@ func getTLSConfig(config Config) (*tls.Config, error) {
 	}
 
 	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		return nil, fmt.Errorf("Could not parse any CA certificates")
+	}
 
 	return &tls.Config{
 		RootCAs: caCertPool,
@@ -126,7 +128,7 @@ func (s *secretsClient) apiRequest(method, path string, body, result interface{}
 	// Returning from here on a 401 because the response currently is
 	// a html page which is not an easily parseable text
 	if response.StatusCode == http.StatusUnauthorized {
-		return NewAPIError([]byte("Unauthorized"))
+		return NewAPIError([]byte(http.StatusText(http.StatusUnauthorized)))
 	}
 
 	return apiResponse(response, result)
