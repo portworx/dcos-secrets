@@ -53,12 +53,7 @@ func (s *secretsClient) UpdateSecret(store, key string, secret *Secret) error {
 }
 
 func (s *secretsClient) CreateOrUpdateSecret(store, key string, secret *Secret) error {
-	path, err := s.getSecretsPath(store, key)
-	if err != nil {
-		return err
-	}
-
-	err = s.apiPut(path, secret, nil)
+	err := s.CreateSecret(store, key, secret)
 	if err != nil && strings.Contains(err.Error(), "already exists") {
 		return s.UpdateSecret(store, key, secret)
 	}
