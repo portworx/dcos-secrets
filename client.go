@@ -125,10 +125,9 @@ func (s *secretsClient) apiRequest(method, path string, body, result interface{}
 	}
 	defer response.Body.Close()
 
-	// Returning from here on a 401 because the response currently is
-	// a html page which is not an easily parseable text
-	if response.StatusCode == http.StatusUnauthorized {
-		return NewAPIError([]byte(http.StatusText(http.StatusUnauthorized)))
+	if response.StatusCode == http.StatusUnauthorized ||
+		response.StatusCode == http.StatusForbidden {
+		return NewAPIError([]byte(http.StatusText(response.StatusCode)))
 	}
 
 	return apiResponse(response, result)
