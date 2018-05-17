@@ -31,9 +31,23 @@ var (
 	ErrNotImplemented = errors.New("API not implemented")
 )
 
+// variables to stub the external package calls
+var (
+	jsonMarshal    = json.Marshal
+	jsonUnmarshal  = json.Unmarshal
+	httpNewRequest = http.NewRequest
+	ioutilReadFile = ioutil.ReadFile
+	ioutilReadAll  = ioutil.ReadAll
+)
+
+// HTTPClient interface is used to mock the http.Client
+type HTTPClient interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
 type secretsClient struct {
 	config     Config
-	httpClient *http.Client
+	httpClient HTTPClient
 }
 
 func NewClient(config Config) (DCOSSecrets, error) {
@@ -65,7 +79,7 @@ func getTLSConfig(config Config) (*tls.Config, error) {
 		return nil, fmt.Errorf("CA certificate file missing.")
 	}
 
-	caCert, err := ioutil.ReadFile(config.CACertFile)
+	caCert, err := ioutilReadFile(config.CACertFile)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read CA certs. %v", err)
 	}
@@ -105,7 +119,7 @@ func (s *secretsClient) apiRequest(method, path string, body, result interface{}
 	var err error
 
 	if body != nil {
-		if requestBody, err = json.Marshal(body); err != nil {
+		if requestBody, err = jsonMarshal(body); err != nil {
 			return err
 		}
 	}
@@ -134,7 +148,7 @@ func (s *secretsClient) apiRequest(method, path string, body, result interface{}
 }
 
 func apiResponse(response *http.Response, result interface{}) error {
-	responseBody, err := ioutil.ReadAll(response.Body)
+	responseBody, err := ioutilReadAll(response.Body)
 	if err != nil {
 		return err
 	}
@@ -152,7 +166,7 @@ func apiResponse(response *http.Response, result interface{}) error {
 }
 
 func buildJSONRequest(method string, url string, reader io.Reader) (*http.Request, error) {
-	request, err := http.NewRequest(method, url, reader)
+	request, err := httpNewRequest(method, url, reader)
 	if err != nil {
 		return nil, err
 	}

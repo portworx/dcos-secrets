@@ -7,11 +7,7 @@ import (
 )
 
 type Secret struct {
-	Author      string   `json:"author,omitempty"`
-	Created     string   `json:"created,omitempty"`
-	Description string   `json:"description,omitempty"`
-	Labels      []string `json:"labels,omitempty"`
-	Value       string   `json:"value,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 var (
