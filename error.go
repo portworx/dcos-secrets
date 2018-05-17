@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -22,7 +21,7 @@ func NewAPIError(body []byte) error {
 	message := string(body)
 
 	errResp := new(ErrorResponse)
-	if err := json.Unmarshal(body, errResp); err == nil && errResp.Description != "" {
+	if err := jsonUnmarshal(body, errResp); err == nil && errResp.Description != "" {
 		message = errResp.Description
 	}
 
